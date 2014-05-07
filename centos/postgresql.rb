@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 
-exit if system("which postgresql > /dev/null")
+exit if File.exists?("/usr/pgsql-9.3/bin/postmaster")
 
 # Based on http://wiki.postgresql.org/wiki/YUM_Installation
 
