@@ -1,7 +1,7 @@
-# This is a collections of scripts to be used with Fucking Scripts Digital Ocean
+# This is a collections of recipes (scripts) to be used with simple_provision
 
-Fucking Scripts Digital Ocean provides a simple yet effective way to
-automate the provision of your Droplet at Digital Ocean.
+simple_provision provides a simple yet effective way to
+automate the provision of your Droplet on Digital Ocean.
 
 ## Contributing
 
