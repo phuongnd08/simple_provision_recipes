@@ -11,7 +11,6 @@ yum install -y gcc-c++ patch readline readline-devel zlib zlib-devel libyaml-dev
 
 # Check if /usr/local/rbenv already exists
 if [[ -d "/usr/local/rbenv" ]]; then
-  echo >&2  "Error: /usr/local/rbenv already exists. Aborting installation.";
   exit 1;
 fi
 

@@ -11,7 +11,7 @@ if ! which redis-server > /dev/null; then
   make
   cp src/redis-server /usr/local/bin
   cp src/redis-cli /usr/local/bin
-  curl https://gist.githubusercontent.com/phuongnd08/29189ab7a73e05909434/raw/initd_redis > /etc/init.d/redis
+  cp ../../files/initd_redis /etc/init.d/redis
   chmod u+x /etc/init.d/redis
   cp redis.conf /etc/redis.conf
   sed -i 's/daemonize no/daemonize yes/g' /etc/redis.conf > /dev/null
