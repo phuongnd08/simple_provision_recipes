@@ -1,7 +1,7 @@
 # This is a collections of scripts to be used with Fucking Scripts Digital Ocean
 
 Fucking Scripts Digital Ocean provides a simple yet effective way to
-automate the deployment of your Droplet at Digital Ocean.
+automate the provision of your Droplet at Digital Ocean.
 
 ## Contributing
 
