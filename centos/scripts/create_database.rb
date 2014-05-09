@@ -25,6 +25,7 @@ unless str.strip == TOKEN
   system "service postgresql-9.3 restart"
 end
 
+# TODO: Check for database existence before trying to create
 system %{
   echo -e "CREATE DATABASE #{ENV['DB_NAME']} WITH ENCODING 'unicode' TEMPLATE template0;\n\\q\n" | sudo -u postgres psql template1
 }

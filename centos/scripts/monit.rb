@@ -6,7 +6,7 @@ end
 
 system("chkconfig monit on")
 
-unless File.open("/etc/monit.conf").each.to_a.last.strip == "# Monit configured"
+unless `tail -1 /etc/monit.conf`.strip == "# Monit configured"
   File.open("/etc/monit.conf", "a") do |f|
     f.puts("set httpd port 2812 and")
     f.puts("    use address localhost  # only accept connection from localhost")
