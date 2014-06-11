@@ -1,0 +1,90 @@
+#Variable Set
+NAME="collector"
+SERVICE_NAME="bin/$NAME"
+APP="<%= ENV['APP_NAME'] %>"
+APP_DIR="/var/www/$APP"
+LOG_FILE="$APP_DIR/current/log/$NAME.log"
+PID_FILE="$APP_DIR/shared/tmp/pids/$NAME.pid"
+SCRIPT_LOCATION="/usr/lib/node_modules/cube/bin/$NAME.js"
+START_CMD="forever start --pidFile $PID_FILE -a -l $LOG_FILE -m 1 $SCRIPT_LOCATION 2>&1 > /dev/null &"
+STOP_CMD="forever stop $SCRIPT_LOCATION"
+
+#### !IMPORTANT PIDFILE an LOGFILE should be defined in RAISL_ROOT/config/sidekiq.yml
+### so not sure -P and -L are necessary here :
+RETVAL=0
+
+start() {
+
+  # status
+  # if [ $? -eq 1 ]; then
+  if [ -f "$PID_FILE" ]; then
+    echo "$NAME is already running .. "
+  else
+    echo "Starting $NAME .. "
+    $START_CMD
+
+    sleep 1
+    if [ ! -f "$PID_FILE" ]; then
+      echo "Started $NAME failed. Make sure mongo started"
+    fi
+
+    RETVAL=$?
+    #Sleeping for 8 seconds for process to be precisely visible in process table - See status ()
+    sleep 1
+    #[ $RETVAL -eq 0 ] && touch $LOCK_FILE
+    return $RETVAL
+  fi
+
+
+}
+
+stop() {
+
+    echo "Stopping $NAME ..."
+    if [ -f "$PID_FILE" ]; then
+      SIG="QUIT"
+      kill -$SIG `cat  $PID_FILE`
+      $STOP_CMD
+      ps -ef | grep '$SERVICE_NAME' | grep -v grep | awk '{print $2}' | xargs kill -9
+      sleep 1
+      RETVAL=$?
+      return $RETVAL
+    else
+      echo "$NAME doesn't exist"
+    fi
+    #[ $RETVAL -eq 0 ] && rm -f $LOCK_FILE
+    return 0
+}
+
+status() {
+  ps -ef | grep "$SERVICE_NAME" | grep -v grep
+  return $?
+}
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+
+        if [ $? -eq 0 ]; then
+             echo "$NAME is running .."
+             RETVAL=0
+         else
+             echo "$NAME is stopped .."
+             RETVAL=1
+         fi
+        ;;
+    *)
+        status
+        stop
+        start
+        exit 0
+        ;;
+esac
+exit $RETVAL
+
