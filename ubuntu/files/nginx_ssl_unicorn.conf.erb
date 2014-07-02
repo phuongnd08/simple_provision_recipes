@@ -1,0 +1,48 @@
+upstream unicorn {
+  server unix:/tmp/unicorn.sock fail_timeout=0;
+}
+
+server {
+
+  listen              80;
+  # listen              443 ssl;
+  # ssl_certificate     /root/certs/server.crt;
+  # ssl_certificate_key /root/certs/server.key;
+
+  client_max_body_size 4G;
+  keepalive_timeout 15;
+  root /var/www/<%= ENV['APP_NAME'] %>/current/public;
+  try_files $uri @unicorn;
+
+  location ~ ^/assets|app/ {
+    gzip_static on;
+    expires max;
+    add_header Cache-Control public;
+  }
+
+  location = /app/ {
+    rewrite $uri $uri/index.html;
+  }
+
+  location @unicorn {
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_redirect off;
+    proxy_pass http://unicorn;
+  }
+
+  if (-f $document_root/system/maintenance.html) {
+    return 503;
+  }
+
+  error_page 500 502 504 /500.html;
+  location = /500.html {
+    root /var/www/<%= ENV['APP_NAME'] %>/current/public;
+  }
+
+  error_page 503 @maintenance;
+  location @maintenance {
+    rewrite  ^(.*)$  /system/maintenance.html break;
+  }
+}

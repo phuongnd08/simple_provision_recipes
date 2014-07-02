@@ -1,0 +1,4 @@
+check process sidekiq with pidfile /var/www/<%= ENV['APP_NAME'] %>/shared/tmp/pids/sidekiq.pid
+        start program = "/etc/init.d/sidekiq start" with timeout 300 seconds
+        stop program = "/etc/init.d/sidekiq stop" with timeout 300 seconds
+        if totalmem is greater than 200 MB for 3 cycles then restart

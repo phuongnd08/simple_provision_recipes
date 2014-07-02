@@ -1,0 +1,91 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:     sidekiq beta
+# Required-Start:   $syslog $remote_fs
+# Required-Stop:    $syslog $remote_fs
+# Should-Start:     $local_fs
+# Should-Stop:      $local_fs
+# Default-Start:    2 3 4 5
+# Default-Stop:     0 1 6
+# Short-Description:    sidekiq beta - asynchronous rails
+# Description:      sidekiq beta - asynchronous rails
+### END INIT INFO
+
+#Variable Set
+NAME=sidekiq
+SIDEKIQ="sidekiq"
+APP="<%= ENV['APP_NAME'] %>"
+APP_DIR="/var/www/$APP"
+APP_CONFIG="$APP_DIR/current/config"
+LOG_FILE="$APP_DIR/current/log/$NAME.log"
+LOCK_FILE="$APP_DIR/${NAME}_$APP-lock"
+PID_FILE="$APP_DIR/shared/tmp/pids/sidekiq.pid"
+APP_ENV=production
+BUNDLE="bundle"
+
+#### !IMPORTANT PIDFILE an LOGFILE should be defined in RAISL_ROOT/config/sidekiq.yml
+### so not sure -P and -L are necessary here :
+START_CMD="cd $APP_DIR/current; $BUNDLE exec $SIDEKIQ -d -e $APP_ENV -P $PID_FILE -C $APP_CONFIG/sidekiq.yml"
+RETVAL=0
+
+
+start() {
+
+  status
+  if [ $? -eq 1 ]; then
+    [ `id -u` -eq 0 ] || (echo "$SIDEKIQ runs as root only .."; exit 5)
+    [ -d $APP_DIR ] || (echo "$APP_DIR not found!.. Exiting"; exit 6)
+    echo "Starting $SIDEKIQ message processor .. "
+    su - root  -c "$START_CMD"
+    RETVAL=$?
+    #Sleeping for 8 seconds for process to be precisely visible in process table - See status ()
+    sleep 8
+    #[ $RETVAL -eq 0 ] && touch $LOCK_FILE
+    return $RETVAL
+  else
+    echo "$SIDEKIQ message processor is already running .. "
+  fi
+
+
+}
+
+stop() {
+
+    echo "Stopping $SIDEKIQ message processor .."
+    SIG="QUIT"
+    if [ -f $PID_FILE ]; then
+      kill -$SIG `cat  $PID_FILE`
+    fi
+}
+
+
+status() {
+  ps -ef | grep "sidekiq [0-9]*.[0-9]*.[0-9]* $APP_ENV" | grep -v grep
+  return $?
+}
+
+
+case "$1" in
+    start)
+        start
+        ;;
+    stop)
+        stop
+        ;;
+    status)
+        status
+
+        if [ $? -eq 0 ]; then
+             echo "$SIDEKIQ message processor is running .."
+             RETVAL=0
+         else
+             echo "$SIDEKIQ message processor is stopped .."
+             RETVAL=1
+         fi
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|status}"
+        exit 0
+        ;;
+esac
+exit $RETVAL
